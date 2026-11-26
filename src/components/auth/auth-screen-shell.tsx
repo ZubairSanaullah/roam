@@ -14,6 +14,7 @@ export interface AuthScreenShellProps {
   noticeVariant?: "info" | "success" | "error";
   onDismissNotice: () => void;
   backAccessibilityLabel?: string;
+  onBackPress?: () => void;
   footerPrompt: string;
   footerLinkLabel: string;
   footerHref?: "/sign-in" | "/sign-up";
@@ -33,6 +34,7 @@ export function AuthScreenShell({
   noticeVariant = "info",
   onDismissNotice,
   backAccessibilityLabel = "Go back",
+  onBackPress,
   footerPrompt,
   footerLinkLabel,
   footerHref,
@@ -43,6 +45,7 @@ export function AuthScreenShell({
   const insets = useSafeAreaInsets();
 
   const handleBack = () => {
+    onBackPress?.();
     if (router.canGoBack()) {
       router.back();
       return;

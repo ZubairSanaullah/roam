@@ -1,22 +1,52 @@
-import { View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { useClerk, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CheckCircle2 from "lucide-react-native/icons/check-circle-2";
 import LogOut from "lucide-react-native/icons/log-out";
 import Palette from "lucide-react-native/icons/palette";
-import { useMockAuth } from "@/components/auth/mock-auth-context";
-import { AppIcon, AppText, Badge, Button, Card } from "@/components/ui";
-import { spacing } from "@/theme";
+import { formatClerkError } from "@/components/auth/clerk-helpers";
+import { Alert, AppIcon, AppText, Badge, Button, Card } from "@/components/ui";
+import { spacing, useThemeColors } from "@/theme";
 
-export default function MockHomeScreen() {
+export default function ProtectedHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, signOut } = useMockAuth();
+  const colors = useThemeColors();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
 
-  const handleSignOut = () => {
-    signOut();
-    router.replace("/");
+  const [signingOut, setSigningOut] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-gray dark:bg-surface-dark">
+        <ActivityIndicator color={colors.textPrimary} />
+      </View>
+    );
+  }
+
+  const displayName =
+    user?.fullName ||
+    user?.firstName ||
+    user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+    "Roam Guest";
+  const emailAddress = user?.primaryEmailAddress?.emailAddress || "Verified account";
+  const authStrategy = user?.externalAccounts?.[0]?.provider ?? "email";
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    setError(null);
+    try {
+      await signOut();
+      router.replace("/");
+    } catch (err) {
+      setError(formatClerkError(err, "Unable to sign out right now."));
+      setSigningOut(false);
+    }
   };
 
   return (
@@ -32,8 +62,12 @@ export default function MockHomeScreen() {
       <View className="gap-lg">
         <View className="flex-row items-center justify-between">
           <AppText variant="brand">roam</AppText>
-          <Badge label="Mock session" variant="success" icon={CheckCircle2} />
+          <Badge label="Clerk session" variant="success" icon={CheckCircle2} />
         </View>
+
+        {error ? (
+          <Alert variant="error" message={error} onDismiss={() => setError(null)} />
+        ) : null}
 
         <Card elevated padding="lg" className="gap-md">
           <View className="flex-row items-center gap-md">
@@ -41,17 +75,15 @@ export default function MockHomeScreen() {
               <AppIcon icon={CheckCircle2} size="lg" tone="lavender" />
             </View>
             <View className="flex-1 gap-xs">
-              <AppText variant="title">
-                Signed in as {user?.name ?? "Roam Guest"}
-              </AppText>
+              <AppText variant="title">Signed in as {displayName}</AppText>
               <AppText variant="caption" tone="secondary">
-                {user?.email ?? "guest@roam.app"} via {user?.provider ?? "email"}
+                {emailAddress} via {authStrategy}
               </AppText>
             </View>
           </View>
 
           <AppText variant="body" tone="secondary">
-            Authentication is currently mocked in memory. Real Clerk sessions and stay discovery tabs will connect here next.
+            Your Clerk session is persisted securely on this device and protected by route guards.
           </AppText>
         </Card>
       </View>
@@ -62,6 +94,7 @@ export default function MockHomeScreen() {
           size="lg"
           title="View design system"
           leftIcon={Palette}
+          disabled={signingOut}
           onPress={() => router.push("/design-system")}
         />
         <Button
@@ -69,6 +102,7 @@ export default function MockHomeScreen() {
           size="lg"
           title="Sign out"
           leftIcon={LogOut}
+          loading={signingOut}
           onPress={handleSignOut}
         />
       </View>

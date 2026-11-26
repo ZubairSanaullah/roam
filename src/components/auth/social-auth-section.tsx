@@ -5,6 +5,7 @@ export interface SocialAuthSectionProps {
   onGooglePress: () => void;
   onApplePress: () => void;
   disabled?: boolean;
+  loadingProvider?: "google" | "apple" | null;
 }
 
 /**
@@ -14,7 +15,10 @@ export function SocialAuthSection({
   onGooglePress,
   onApplePress,
   disabled = false,
+  loadingProvider = null,
 }: SocialAuthSectionProps) {
+  const isLocked = disabled || loadingProvider !== null;
+
   return (
     <View className="gap-md">
       <View className="my-xs flex-row items-center gap-md">
@@ -30,7 +34,8 @@ export function SocialAuthSection({
         size="lg"
         title="Continue with Google"
         leftElement={<GoogleIcon size={20} />}
-        disabled={disabled}
+        loading={loadingProvider === "google"}
+        disabled={isLocked && loadingProvider !== "google"}
         onPress={onGooglePress}
       />
       <Button
@@ -38,7 +43,8 @@ export function SocialAuthSection({
         size="lg"
         title="Continue with Apple"
         leftElement={<AppleIcon size={20} />}
-        disabled={disabled}
+        loading={loadingProvider === "apple"}
+        disabled={isLocked && loadingProvider !== "apple"}
         onPress={onApplePress}
       />
     </View>

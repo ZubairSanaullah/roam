@@ -5,7 +5,8 @@ import {
   useColorScheme,
   useWindowDimensions,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useAuth, useSSO } from "@clerk/expo";
+import { Redirect, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
   useAnimatedReaction,
@@ -17,7 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import ArrowRight from "lucide-react-native/icons/arrow-right";
-import { AppText, Button, GoogleIcon } from "@/components/ui";
+import { formatClerkError, runClerkSSOFlow } from "@/components/auth/clerk-helpers";
 import {
   OnboardingCopyTransition,
   OnboardingHeroSlide,
@@ -26,6 +27,7 @@ import {
   TopMistScrim,
 } from "@/components/onboarding/onboarding-chrome";
 import { ONBOARDING_SLIDES } from "@/components/onboarding/onboarding-slides";
+import { Alert, AppText, Button, GoogleIcon } from "@/components/ui";
 import { radius, spacing } from "@/theme";
 
 const SHEET_OVERLAP = 48;
@@ -36,9 +38,13 @@ export default function OnboardingScreen() {
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme();
   const reducedMotion = useReducedMotion();
+  const { isLoaded, isSignedIn } = useAuth();
+  const { startSSOFlow } = useSSO();
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [ssoError, setSsoError] = useState<string | null>(null);
 
   const scrollX = useSharedValue(0);
   const slideWidth = useSharedValue(width);
@@ -67,6 +73,14 @@ export default function OnboardingScreen() {
     },
   );
 
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (isSignedIn) {
+    return <Redirect href="/home" />;
+  }
+
   const activeSlide = ONBOARDING_SLIDES[activeIndex] ?? ONBOARDING_SLIDES[0];
 
   const goToSlide = (index: number) => {
@@ -87,8 +101,19 @@ export default function OnboardingScreen() {
     router.push("/sign-in");
   };
 
-  const handleContinueWithGoogle = () => {
-    router.push({ pathname: "/sign-in", params: { provider: "google" } });
+  const handleContinueWithGoogle = async () => {
+    setGoogleLoading(true);
+    setSsoError(null);
+    try {
+      const message = await runClerkSSOFlow(startSSOFlow, "oauth_google", router);
+      if (message) {
+        setSsoError(message);
+      }
+    } catch (err) {
+      setSsoError(formatClerkError(err, "Unable to sign in with Google."));
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -183,6 +208,15 @@ export default function OnboardingScreen() {
             </View>
           </OnboardingCopyTransition>
 
+          {ssoError ? (
+            <Alert
+              variant="error"
+              message={ssoError}
+              onDismiss={() => setSsoError(null)}
+              className="mt-md"
+            />
+          ) : null}
+
           <View className="mt-xl gap-md">
             <Button
               variant="primary"
@@ -190,6 +224,7 @@ export default function OnboardingScreen() {
               title="Get started"
               rightIcon={ArrowRight}
               rightIconAlign="end"
+              disabled={googleLoading}
               onPress={handleGetStarted}
             />
             <Button
@@ -197,6 +232,7 @@ export default function OnboardingScreen() {
               size="lg"
               title="Continue with Google"
               leftElement={<GoogleIcon size={20} />}
+              loading={googleLoading}
               onPress={handleContinueWithGoogle}
             />
           </View>

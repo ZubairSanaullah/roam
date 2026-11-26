@@ -1,18 +1,25 @@
 import { useState } from "react";
 import { View } from "react-native";
+import { useSignUp, useSSO } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import ArrowRight from "lucide-react-native/icons/arrow-right";
 import Lock from "lucide-react-native/icons/lock";
 import Mail from "lucide-react-native/icons/mail";
 import User from "lucide-react-native/icons/user";
 import { AuthScreenShell } from "@/components/auth/auth-screen-shell";
-import { useMockAuth } from "@/components/auth/mock-auth-context";
+import {
+  formatClerkError,
+  navigateAfterClerkAuth,
+  runClerkSSOFlow,
+  splitFullName,
+} from "@/components/auth/clerk-helpers";
 import { SocialAuthSection } from "@/components/auth/social-auth-section";
 import { Button, Input } from "@/components/ui";
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { beginSignUp, signInWithProvider } = useMockAuth();
+  const { signUp, errors, fetchStatus } = useSignUp();
+  const { startSSOFlow } = useSSO();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,8 +28,30 @@ export default function SignUpScreen() {
   const [emailError, setEmailError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
   const [notice, setNotice] = useState<string | null>(null);
+  const [loadingProvider, setLoadingProvider] = useState<"google" | "apple" | null>(null);
 
-  const handleCreateAccount = () => {
+  const isBusy = fetchStatus === "fetching" || loadingProvider !== null;
+
+  const resolvedNameError =
+    nameError ??
+    errors.fields.firstName?.longMessage ??
+    errors.fields.firstName?.message ??
+    errors.fields.lastName?.longMessage ??
+    errors.fields.lastName?.message;
+  const resolvedEmailError =
+    emailError ?? errors.fields.emailAddress?.longMessage ?? errors.fields.emailAddress?.message;
+  const resolvedPasswordError =
+    passwordError ?? errors.fields.password?.longMessage ?? errors.fields.password?.message;
+  const clerkGlobalError =
+    errors.global?.[0]?.longMessage ??
+    errors.global?.[0]?.message ??
+    errors.fields.captcha?.longMessage ??
+    errors.fields.captcha?.message ??
+    null;
+
+  const displayedNotice = notice ?? clerkGlobalError;
+
+  const handleCreateAccount = async () => {
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
 
@@ -38,28 +67,70 @@ export default function SignUpScreen() {
     setNameError(nextNameError);
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
+    setNotice(null);
 
     if (nextNameError || nextEmailError || nextPasswordError) {
       return;
     }
 
-    beginSignUp({ name: trimmedName, email: trimmedEmail });
-    router.push({
-      pathname: "/verify",
-      params: { email: trimmedEmail, name: trimmedName },
+    const { firstName, lastName } = splitFullName(trimmedName);
+    const { error } = await signUp.password({
+      emailAddress: trimmedEmail,
+      password,
+      firstName,
+      lastName,
     });
+
+    if (error) {
+      return;
+    }
+
+    if (signUp.status === "complete") {
+      await signUp.finalize({
+        navigate: (params) => navigateAfterClerkAuth(router, params),
+      });
+      return;
+    }
+
+    const { error: sendError } = await signUp.verifications.sendEmailCode();
+    if (sendError) {
+      setNotice(formatClerkError(sendError, "Unable to send verification code."));
+      return;
+    }
+
+    if (
+      signUp.status === "missing_requirements" &&
+      signUp.unverifiedFields?.includes("email_address")
+    ) {
+      router.push({
+        pathname: "/verify",
+        params: { mode: "sign-up", email: trimmedEmail },
+      });
+    }
   };
 
-  const handleProviderAuth = (provider: "google" | "apple") => {
-    signInWithProvider(provider);
-    router.replace("/home");
+  const handleProviderAuth = async (provider: "google" | "apple") => {
+    setLoadingProvider(provider);
+    setNotice(null);
+    try {
+      const strategy = provider === "google" ? "oauth_google" : "oauth_apple";
+      const message = await runClerkSSOFlow(startSSOFlow, strategy, router);
+      if (message) {
+        setNotice(message);
+      }
+    } catch (err) {
+      setNotice(formatClerkError(err));
+    } finally {
+      setLoadingProvider(null);
+    }
   };
 
   return (
     <AuthScreenShell
       title={"Create\nyour account"}
       subtitle="Join roam to save your stays, get personalized recommendations and access them across all your devices."
-      notice={notice}
+      notice={displayedNotice}
+      noticeVariant={displayedNotice ? "error" : "info"}
       onDismissNotice={() => setNotice(null)}
       backAccessibilityLabel="Back to onboarding"
       footerPrompt="Already have an account?"
@@ -80,7 +151,8 @@ export default function SignUpScreen() {
           autoCapitalize="words"
           autoComplete="name"
           textContentType="name"
-          error={nameError}
+          editable={!isBusy}
+          error={resolvedNameError}
         />
 
         <Input
@@ -97,7 +169,8 @@ export default function SignUpScreen() {
           autoCapitalize="none"
           autoComplete="email"
           textContentType="emailAddress"
-          error={emailError}
+          editable={!isBusy}
+          error={resolvedEmailError}
         />
 
         <Input
@@ -114,7 +187,8 @@ export default function SignUpScreen() {
           autoCapitalize="none"
           autoComplete="new-password"
           textContentType="newPassword"
-          error={passwordError}
+          editable={!isBusy}
+          error={resolvedPasswordError}
         />
       </View>
 
@@ -125,14 +199,20 @@ export default function SignUpScreen() {
           title="Create account"
           rightIcon={ArrowRight}
           rightIconAlign="end"
+          loading={fetchStatus === "fetching"}
+          disabled={loadingProvider !== null}
           onPress={handleCreateAccount}
         />
 
         <SocialAuthSection
+          loadingProvider={loadingProvider}
+          disabled={fetchStatus === "fetching"}
           onGooglePress={() => handleProviderAuth("google")}
           onApplePress={() => handleProviderAuth("apple")}
         />
       </View>
+
+      <View nativeID="clerk-captcha" />
     </AuthScreenShell>
   );
 }
