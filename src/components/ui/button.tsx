@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
@@ -41,6 +42,7 @@ export interface ButtonProps {
   leftIcon?: LucideIcon;
   leftElement?: ReactNode;
   rightIcon?: LucideIcon;
+  rightIconAlign?: "inline" | "end";
   iconOnly?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -61,6 +63,7 @@ export function Button({
   leftIcon,
   leftElement,
   rightIcon,
+  rightIconAlign = "inline",
   iconOnly = false,
   loading = false,
   disabled = false,
@@ -79,6 +82,7 @@ export function Button({
       : colors.textPrimary;
 
   const iconComponent = leftIcon ?? rightIcon;
+  const alignRightEnd = !iconOnly && rightIconAlign === "end" && !!rightIcon;
 
   return (
     <Pressable
@@ -88,7 +92,8 @@ export function Button({
       disabled={isDisabled}
       onPress={onPress}
       className={[
-        "flex-row items-center justify-center gap-sm rounded-full",
+        "flex-row items-center gap-sm rounded-full",
+        alignRightEnd ? "justify-between" : "justify-center",
         variantContainerClasses[variant],
         iconOnly ? iconOnlySizeClasses[size] : sizeClasses[size],
         className,
@@ -110,6 +115,27 @@ export function Button({
         leftElement
       ) : iconOnly && iconComponent ? (
         <AppIcon icon={iconComponent} size={size === "sm" ? "sm" : "md"} tone={foregroundTone} />
+      ) : alignRightEnd ? (
+        <>
+          <View className="w-5 items-start">
+            {leftElement ??
+              (leftIcon ? (
+                <AppIcon icon={leftIcon} size={size === "sm" ? "sm" : "md"} tone={foregroundTone} />
+              ) : null)}
+          </View>
+          {title ? (
+            <AppText
+              variant={size === "sm" ? "caption" : "button"}
+              tone={foregroundTone}
+              className="flex-1 text-center font-sans-semibold"
+            >
+              {title}
+            </AppText>
+          ) : null}
+          <View className="w-5 items-end">
+            <AppIcon icon={rightIcon} size={size === "sm" ? "sm" : "md"} tone={foregroundTone} />
+          </View>
+        </>
       ) : (
         <>
           {leftElement ??

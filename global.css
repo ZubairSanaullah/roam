@@ -35,8 +35,12 @@
   --color-lavender-tint: #EFEAFF;
   --color-lavender-tint-dark: #241E42;
   --color-lavender-accent: #6D4AFF;
+  --color-lavender-indicator: #9E82FF;
   --color-lavender-badge: #E4DAFF;
   --color-lavender-badge-dark: #32285C;
+  --color-overlay-border: rgba(255, 255, 255, 0.28);
+  --color-top-scrim: rgba(255, 255, 255, 0.88);
+  --color-top-scrim-dark: rgba(11, 11, 26, 0.85);
 
   --color-success-bg: #DCFCE7;
   --color-success-fg: #15803D;
@@ -108,6 +112,27 @@
   font-size: 56px;
   line-height: 56px;
   letter-spacing: -1.1px;
+}
+
+@utility type-wordmark {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: -1.4px;
+}
+
+@utility type-brand {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 26px;
+  line-height: 30px;
+  letter-spacing: -0.9px;
+}
+
+@utility type-hero {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 34px;
+  line-height: 44px;
+  letter-spacing: -0.7px;
 }
 
 @utility type-heading {

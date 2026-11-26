@@ -2,6 +2,9 @@ import { Text, type TextProps } from "react-native";
 
 const variantClasses = {
   display: "type-display",
+  wordmark: "type-wordmark",
+  brand: "type-brand",
+  hero: "type-hero",
   heading: "type-heading",
   title: "type-title",
   body: "type-body",
@@ -14,8 +17,10 @@ const toneClasses = {
   primary: "text-text-primary dark:text-text-primary-dark",
   secondary: "text-text-secondary dark:text-text-secondary-dark",
   inverse: "text-surface-white dark:text-text-primary",
+  onOverlay: "text-surface-white",
   onAccent: "text-text-primary",
   lavender: "text-lavender-accent dark:text-lavender",
+  info: "text-badge-info-fg dark:text-badge-info-fg-dark",
   success: "text-success-fg dark:text-success-fg-dark",
   error: "text-error-fg dark:text-error-fg-dark",
 } as const;

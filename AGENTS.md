@@ -27,7 +27,7 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 
 Each tool has one job. Ask before moving a responsibility to a different tool.
 
-- **Auth:** Clerk is the source of truth. The app keeps its own custom auth screens. Set Clerk up through the Clerk CLI and use the Clerk MCP for current Expo patterns.
+- **Auth:** Clerk is the source of truth. The app keeps its own custom auth screens (`src/app/(auth)/sign-in.tsx`, `src/app/(auth)/sign-up.tsx`, `src/app/(auth)/verify.tsx`). Unauthenticated entry starts at `/` (`src/app/index.tsx` onboarding) until signed in; `/design-system` holds the component showcase. Set Clerk up through the Clerk CLI and use the Clerk MCP for current Expo patterns.
 - **Content:** Sanity (properties, hosts, policies, house rules). Studio is a standalone app in `studio/`. Schema deploys and content changes go through the Sanity MCP, and generated property copy uses Agent Actions.
 - **Exact constraints** (price, guests, type, amenities, pets, place): GROQ filters, with values always passed as params.
 - **Soft intent** (quiet, cozy, secluded): Dataset Embeddings via `text::semanticSimilarity()` inside `score()`.
@@ -49,6 +49,7 @@ Each tool has one job. Ask before moving a responsibility to a different tool.
 - PostHog failures never block the app. Never send what guests type, tokens, or personal data in events.
 - Let Sanity generate document IDs. Model relationships as references.
 - Ask before adding a dependency or service, changing the Sanity schema once content exists, or deleting data. Prefer Expo modules over third-party libraries.
+- Never use em dashes (`—`) anywhere in the app copy, UI, or code.
 - Whenever you need input from the user, ask through your tool's built-in question panel so they pick from options instead of typing. Give two to four clear options with the recommended one first. Fall back to plain text only if no such panel exists.
 
 ## How we build features

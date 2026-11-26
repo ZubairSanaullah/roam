@@ -16,7 +16,7 @@ import { AppText } from "./app-text";
 
 export interface InputProps extends Omit<TextInputProps, "style"> {
   label?: string;
-  variant?: "default" | "search";
+  variant?: "default" | "search" | "stacked";
   leadingIcon?: LucideIcon;
   trailingIcon?: LucideIcon;
   onTrailingPress?: () => void;
@@ -28,8 +28,8 @@ export interface InputProps extends Omit<TextInputProps, "style"> {
 }
 
 /**
- * Pill text field supporting default, focused lavender ring, search, password
- * visibility toggle, and inline validation errors.
+ * Text field supporting pill default/search variants, stacked rounded-box
+ * auth fields, focus lavender ring, password toggle, and inline errors.
  */
 export function Input({
   label,
@@ -52,6 +52,7 @@ export function Input({
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
+  const isStacked = variant === "stacked";
   const isPassword = Boolean(secureTextEntry);
   const effectiveSecure = isPassword && !revealed;
   const activeTrailingIcon =
@@ -69,15 +70,49 @@ export function Input({
     ? "border-2 border-error-fg dark:border-error-fg-dark"
     : focused
       ? "border-2 border-lavender"
-      : "border border-border-gray dark:border-border-dark";
+      : isStacked
+        ? "border border-transparent"
+        : "border border-border-gray dark:border-border-dark";
 
   const surfaceClass = focused
     ? "bg-lavender-tint/40 dark:bg-lavender-tint-dark/60"
     : "bg-surface-gray dark:bg-surface-subtle-dark";
 
+  const textInputEl = (
+    <TextInput
+      editable={editable}
+      secureTextEntry={effectiveSecure}
+      placeholderTextColor={colors.textSecondary}
+      selectionColor={colors.lavenderAccent}
+      onFocus={(event) => {
+        setFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        onBlur?.(event);
+      }}
+      className={[
+        "type-body text-text-primary dark:text-text-primary-dark",
+        isStacked ? "p-0" : "flex-1 py-md",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={[
+        {
+          fontFamily: fontFamilies.regular,
+          color: colors.textPrimary,
+        },
+        style,
+      ]}
+      {...props}
+    />
+  );
+
   return (
     <View className={["gap-xs", containerClassName].filter(Boolean).join(" ")}>
-      {label ? (
+      {label && !isStacked ? (
         <AppText variant="caption" tone="secondary" className="px-sm">
           {label}
         </AppText>
@@ -85,51 +120,40 @@ export function Input({
 
       <View
         className={[
-          "min-h-12 flex-row items-center gap-md rounded-full px-base",
+          "flex-row items-center gap-md px-base",
+          isStacked ? "min-h-16 rounded-lg py-md" : "min-h-12 rounded-full",
           surfaceClass,
           borderClass,
           !editable ? "opacity-50" : null,
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{ borderRadius: radius.full }}
+        style={
+          isStacked
+            ? { borderRadius: radius.lg, borderCurve: "continuous" }
+            : { borderRadius: radius.full }
+        }
       >
         {leadingIcon ? (
           <AppIcon
             icon={leadingIcon}
             size="md"
-            tone={focused ? "lavender" : "secondary"}
+            tone={focused ? "lavender" : isStacked ? "primary" : "secondary"}
           />
         ) : null}
 
-        <TextInput
-          editable={editable}
-          secureTextEntry={effectiveSecure}
-          placeholderTextColor={colors.textSecondary}
-          selectionColor={colors.lavenderAccent}
-          onFocus={(event) => {
-            setFocused(true);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setFocused(false);
-            onBlur?.(event);
-          }}
-          className={[
-            "type-body flex-1 py-md text-text-primary dark:text-text-primary-dark",
-            className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          style={[
-            {
-              fontFamily: fontFamilies.regular,
-              color: colors.textPrimary,
-            },
-            style,
-          ]}
-          {...props}
-        />
+        {isStacked ? (
+          <View className="flex-1 justify-center gap-xs">
+            {label ? (
+              <AppText variant="label" tone="primary" className="font-sans-semibold">
+                {label}
+              </AppText>
+            ) : null}
+            {textInputEl}
+          </View>
+        ) : (
+          textInputEl
+        )}
 
         {activeTrailingIcon ? (
           <Pressable
@@ -147,7 +171,11 @@ export function Input({
             hitSlop={8}
             className="items-center justify-center p-xs"
           >
-            <AppIcon icon={activeTrailingIcon} size="md" tone="secondary" />
+            <AppIcon
+              icon={activeTrailingIcon}
+              size="md"
+              tone={isStacked ? "primary" : "secondary"}
+            />
           </Pressable>
         ) : null}
       </View>

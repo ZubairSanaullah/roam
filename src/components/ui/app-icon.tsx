@@ -6,8 +6,10 @@ export type AppIconTone =
   | "primary"
   | "secondary"
   | "inverse"
+  | "onOverlay"
   | "onAccent"
   | "lavender"
+  | "info"
   | "success"
   | "error"
   | "warning";
@@ -28,10 +30,14 @@ function resolveToneColor(colors: ThemeColors, tone: AppIconTone): string {
       return colors.textSecondary;
     case "inverse":
       return colors.textInverse;
+    case "onOverlay":
+      return colors.onOverlay;
     case "onAccent":
       return colors.onPrimary;
     case "lavender":
       return colors.lavenderAccent;
+    case "info":
+      return colors.badgeInfoFg;
     case "success":
       return colors.successFg;
     case "error":

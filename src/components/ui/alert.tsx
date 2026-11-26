@@ -1,6 +1,7 @@
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 import AlertCircle from "lucide-react-native/icons/alert-circle";
 import CheckCircle2 from "lucide-react-native/icons/check-circle-2";
+import Info from "lucide-react-native/icons/info";
 import X from "lucide-react-native/icons/x";
 import { radius } from "@/theme";
 import { AppIcon } from "./app-icon";
@@ -11,6 +12,11 @@ const alertVariants = {
     container: "bg-success-bg dark:bg-success-bg-dark",
     tone: "success" as const,
     icon: CheckCircle2,
+  },
+  info: {
+    container: "bg-badge-info-bg dark:bg-badge-info-bg-dark",
+    tone: "info" as const,
+    icon: Info,
   },
   error: {
     container: "bg-error-bg dark:bg-error-bg-dark",

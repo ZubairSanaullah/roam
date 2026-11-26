@@ -1,5 +1,7 @@
 export { Alert } from "./alert";
 export type { AlertProps, AlertVariant } from "./alert";
+export { AppleIcon } from "./apple-icon";
+export type { AppleIconProps } from "./apple-icon";
 export { AppIcon } from "./app-icon";
 export type { AppIconProps, AppIconSize, AppIconTone } from "./app-icon";
 export { AppText } from "./app-text";
