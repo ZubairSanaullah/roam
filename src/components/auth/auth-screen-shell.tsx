@@ -4,7 +4,7 @@ import { Link, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ChevronLeft from "lucide-react-native/icons/chevron-left";
-import { Alert, AppText, Button } from "@/components/ui";
+import { Alert, AppText, Button, RoamLogo } from "@/components/ui";
 import { spacing } from "@/theme";
 
 export interface AuthScreenShellProps {
@@ -76,7 +76,7 @@ export function AuthScreenShell({
             accessibilityLabel={backAccessibilityLabel}
             onPress={handleBack}
           />
-          <AppText variant="brand">roam</AppText>
+          <RoamLogo size="md" />
         </View>
 
         <View className="mt-xl gap-sm">

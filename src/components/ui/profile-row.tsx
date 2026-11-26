@@ -7,7 +7,9 @@ import { AppText } from "./app-text";
 export interface ProfileRowProps {
   icon: LucideIcon;
   label: string;
+  subtitle?: string;
   showDivider?: boolean;
+  showChevron?: boolean;
   onPress?: () => void;
   className?: string;
   style?: StyleProp<ViewStyle>;
@@ -20,15 +22,18 @@ export interface ProfileRowProps {
 export function ProfileRow({
   icon,
   label,
+  subtitle,
   showDivider = true,
+  showChevron = true,
   onPress,
   className,
   style,
 }: ProfileRowProps) {
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityRole={onPress ? "button" : "text"}
+      accessibilityLabel={subtitle ? `${label}, ${subtitle}` : label}
+      disabled={!onPress}
       onPress={onPress}
       className={[
         "min-h-13 flex-row items-center gap-md px-base py-md",
@@ -38,17 +43,24 @@ export function ProfileRow({
         .filter(Boolean)
         .join(" ")}
       style={({ pressed }) => [
-        { opacity: pressed ? 0.72 : 1 },
+        { opacity: pressed && onPress ? 0.72 : 1 },
         style,
       ]}
     >
       <View className="items-center justify-center">
         <AppIcon icon={icon} size="md" tone="primary" />
       </View>
-      <AppText variant="body" className="flex-1 font-sans-medium">
-        {label}
-      </AppText>
-      <AppIcon icon={ChevronRight} size="md" tone="secondary" />
+      <View className="flex-1 gap-xs">
+        <AppText variant="body" className="font-sans-medium">
+          {label}
+        </AppText>
+        {subtitle ? (
+          <AppText variant="caption" tone="secondary">
+            {subtitle}
+          </AppText>
+        ) : null}
+      </View>
+      {showChevron ? <AppIcon icon={ChevronRight} size="md" tone="secondary" /> : null}
     </Pressable>
   );
 }

@@ -15,15 +15,23 @@ export type { CardPadding, CardProps, CardVariant } from "./card";
 export { Chip } from "./chip";
 export type { ChipProps } from "./chip";
 export { GlassTabBar } from "./glass-tab-bar";
-export type { GlassTabBarProps, GlassTabItem } from "./glass-tab-bar";
+export type {
+  GlassTabBarProps,
+  GlassTabBarVariant,
+  GlassTabItem,
+} from "./glass-tab-bar";
 export { GoogleIcon } from "./google-icon";
 export type { GoogleIconProps } from "./google-icon";
 export { Input } from "./input";
 export type { InputProps } from "./input";
 export { ListingCard } from "./listing-card";
 export type { ListingAmenity, ListingCardProps } from "./listing-card";
+export { PressableScale } from "./pressable-scale";
+export type { PressableScaleProps } from "./pressable-scale";
 export { ProfileRow } from "./profile-row";
 export type { ProfileRowProps } from "./profile-row";
+export { RoamLogo } from "./roam-logo";
+export type { RoamLogoProps, RoamLogoSize } from "./roam-logo";
 export { SegmentedControl } from "./segmented-control";
 export type { SegmentedControlProps, SegmentedOption } from "./segmented-control";
 export { Stepper } from "./stepper";

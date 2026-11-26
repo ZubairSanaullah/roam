@@ -9,7 +9,8 @@ export const fontFamilies = {
   medium: "PlusJakartaSans_500Medium",
   semibold: "PlusJakartaSans_600SemiBold",
   bold: "PlusJakartaSans_700Bold",
-  display: "PlusJakartaSans_700Bold",
+  extrabold: "PlusJakartaSans_800ExtraBold",
+  display: "PlusJakartaSans_800ExtraBold",
 } as const;
 
 export const spacing = {

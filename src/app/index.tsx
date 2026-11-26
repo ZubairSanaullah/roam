@@ -27,7 +27,7 @@ import {
   TopMistScrim,
 } from "@/components/onboarding/onboarding-chrome";
 import { ONBOARDING_SLIDES } from "@/components/onboarding/onboarding-slides";
-import { Alert, AppText, Button, GoogleIcon } from "@/components/ui";
+import { Alert, AppText, Button, GoogleIcon, RoamLogo } from "@/components/ui";
 import { radius, spacing } from "@/theme";
 
 const SHEET_OVERLAP = 48;
@@ -157,9 +157,7 @@ export default function OnboardingScreen() {
             className="flex-row items-center justify-between px-xl"
             pointerEvents="box-none"
           >
-            <AppText variant="wordmark" accessibilityRole="header">
-              roam
-            </AppText>
+            <RoamLogo size="lg" />
 
             <Pressable
               accessibilityRole="button"

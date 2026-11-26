@@ -35,6 +35,7 @@ export const palette = {
   overlayBorder: "rgba(255, 255, 255, 0.28)",
   topScrim: "rgba(255, 255, 255, 0.88)",
   topScrimDark: "rgba(11, 11, 26, 0.85)",
+  cardScrim: "rgba(11, 11, 26, 0.78)",
 
   successBg: "#DCFCE7",
   successFg: "#15803D",
@@ -89,6 +90,7 @@ export const semanticColors = {
     glassDark: palette.glassBlurDark,
     overlayBorder: palette.overlayBorder,
     topScrim: palette.topScrim,
+    cardScrim: palette.cardScrim,
     successBg: palette.successBg,
     successFg: palette.successFg,
     errorBg: palette.errorBg,
@@ -121,6 +123,7 @@ export const semanticColors = {
     glassDark: palette.glassBlurDark,
     overlayBorder: palette.overlayBorder,
     topScrim: palette.topScrimDark,
+    cardScrim: palette.cardScrim,
     successBg: palette.successBgDark,
     successFg: palette.successFgDark,
     errorBg: palette.errorBgDark,

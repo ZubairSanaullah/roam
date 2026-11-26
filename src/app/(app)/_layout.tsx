@@ -18,8 +18,19 @@ export default function ProtectedAppLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.appBackground },
+        contentStyle: { backgroundColor: colors.surface },
       }}
-    />
+    >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="stay/[id]"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.68, 1.0],
+          contentStyle: { backgroundColor: colors.surface },
+        }}
+      />
+    </Stack>
   );
 }

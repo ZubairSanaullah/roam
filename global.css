@@ -10,7 +10,8 @@
   --font-sans-medium: "PlusJakartaSans_500Medium";
   --font-sans-semibold: "PlusJakartaSans_600SemiBold";
   --font-sans-bold: "PlusJakartaSans_700Bold";
-  --font-display: "PlusJakartaSans_700Bold";
+  --font-sans-extrabold: "PlusJakartaSans_800ExtraBold";
+  --font-display: "PlusJakartaSans_800ExtraBold";
 
   /* Reference Color Palette (Light) */
   --color-primary-yellow: #FFC629;
@@ -41,6 +42,7 @@
   --color-overlay-border: rgba(255, 255, 255, 0.28);
   --color-top-scrim: rgba(255, 255, 255, 0.88);
   --color-top-scrim-dark: rgba(11, 11, 26, 0.85);
+  --color-card-scrim: rgba(11, 11, 26, 0.78);
 
   --color-success-bg: #DCFCE7;
   --color-success-fg: #15803D;
@@ -108,31 +110,31 @@
 
 /* Shared Typography Styles (omit fontWeight when static weights use fontFamily) */
 @utility type-display {
-  font-family: "PlusJakartaSans_700Bold";
+  font-family: "PlusJakartaSans_800ExtraBold";
   font-size: 56px;
   line-height: 56px;
-  letter-spacing: -1.1px;
-}
-
-@utility type-wordmark {
-  font-family: "PlusJakartaSans_700Bold";
-  font-size: 40px;
-  line-height: 44px;
   letter-spacing: -1.4px;
 }
 
+@utility type-wordmark {
+  font-family: "PlusJakartaSans_800ExtraBold";
+  font-size: 44px;
+  line-height: 44px;
+  letter-spacing: -2.8px;
+}
+
 @utility type-brand {
-  font-family: "PlusJakartaSans_700Bold";
-  font-size: 26px;
+  font-family: "PlusJakartaSans_800ExtraBold";
+  font-size: 28px;
   line-height: 30px;
-  letter-spacing: -0.9px;
+  letter-spacing: -1.8px;
 }
 
 @utility type-hero {
-  font-family: "PlusJakartaSans_700Bold";
-  font-size: 34px;
-  line-height: 44px;
-  letter-spacing: -0.7px;
+  font-family: "PlusJakartaSans_800ExtraBold";
+  font-size: 32px;
+  line-height: 38px;
+  letter-spacing: -1px;
 }
 
 @utility type-heading {
