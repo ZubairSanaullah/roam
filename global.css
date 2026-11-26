@@ -1,0 +1,160 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  /* Fonts (Plus Jakarta Sans static weights loaded via expo-font) */
+  --font-sans: "PlusJakartaSans_400Regular";
+  --font-sans-medium: "PlusJakartaSans_500Medium";
+  --font-sans-semibold: "PlusJakartaSans_600SemiBold";
+  --font-sans-bold: "PlusJakartaSans_700Bold";
+  --font-display: "PlusJakartaSans_700Bold";
+
+  /* Reference Color Palette (Light) */
+  --color-primary-yellow: #FFC629;
+  --color-lavender: #C9B4FF;
+  --color-text-primary: #0B0B1A;
+  --color-text-secondary: #6B7280;
+  --color-surface-white: #FFFFFF;
+  --color-surface-gray: #F4F5F7;
+  --color-border-gray: #E5E7EB;
+  --color-glass-blur: rgba(255, 255, 255, 0.7);
+
+  /* Derived Dark Palette */
+  --color-surface-dark: #0B0B1A;
+  --color-surface-elevated-dark: #151528;
+  --color-surface-subtle-dark: #1F1F36;
+  --color-border-dark: #2D2D48;
+  --color-text-primary-dark: #F9FAFB;
+  --color-text-secondary-dark: #9CA3AF;
+  --color-glass-blur-dark: rgba(11, 11, 26, 0.72);
+
+  /* Semantic & Component Tints */
+  --color-lavender-tint: #EFEAFF;
+  --color-lavender-tint-dark: #241E42;
+  --color-lavender-accent: #6D4AFF;
+  --color-lavender-badge: #E4DAFF;
+  --color-lavender-badge-dark: #32285C;
+
+  --color-success-bg: #DCFCE7;
+  --color-success-fg: #15803D;
+  --color-success-bg-dark: #123121;
+  --color-success-fg-dark: #4ADE80;
+
+  --color-error-bg: #FEE2E2;
+  --color-error-fg: #DC2626;
+  --color-error-bg-dark: #351418;
+  --color-error-fg-dark: #F87171;
+
+  --color-badge-yellow-bg: #FEF3C7;
+  --color-badge-yellow-bg-dark: #332911;
+  --color-badge-yellow-fg-dark: #FDE68A;
+
+  --color-badge-info-bg: #DBEAFE;
+  --color-badge-info-fg: #1D4ED8;
+  --color-badge-info-bg-dark: #172554;
+  --color-badge-info-fg-dark: #93C5FD;
+
+  --color-badge-promo-bg: #FCE7F3;
+  --color-badge-promo-fg: #9D174D;
+  --color-badge-promo-bg-dark: #3B1226;
+  --color-badge-promo-fg-dark: #F9A8D4;
+
+  /* 4-point Spacing Scale */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* Radii Scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Typography Scale */
+  --text-display: 56px;
+  --text-display--line-height: 56px;
+  --text-heading: 28px;
+  --text-heading--line-height: 34px;
+  --text-title: 18px;
+  --text-title--line-height: 23px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-caption: 14px;
+  --text-caption--line-height: 19px;
+  --text-button: 17px;
+  --text-button--line-height: 20px;
+  --text-label: 12px;
+  --text-label--line-height: 15px;
+
+  /* Restrained Elevation Shadows (boxShadow) */
+  --shadow-card: 0 2px 8px rgba(11, 11, 26, 0.06);
+  --shadow-raised: 0 6px 18px rgba(11, 11, 26, 0.10);
+  --shadow-glass: 0 8px 24px rgba(11, 11, 26, 0.12);
+}
+
+/* Shared Typography Styles (omit fontWeight when static weights use fontFamily) */
+@utility type-display {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 56px;
+  line-height: 56px;
+  letter-spacing: -1.1px;
+}
+
+@utility type-heading {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 28px;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+}
+
+@utility type-title {
+  font-family: "PlusJakartaSans_700Bold";
+  font-size: 18px;
+  line-height: 23px;
+  letter-spacing: -0.2px;
+}
+
+@utility type-body {
+  font-family: "PlusJakartaSans_400Regular";
+  font-size: 16px;
+  line-height: 24px;
+}
+
+@utility type-caption {
+  font-family: "PlusJakartaSans_500Medium";
+  font-size: 14px;
+  line-height: 19px;
+}
+
+@utility type-button {
+  font-family: "PlusJakartaSans_500Medium";
+  font-size: 17px;
+  line-height: 20px;
+}
+
+@utility type-label {
+  font-family: "PlusJakartaSans_500Medium";
+  font-size: 12px;
+  line-height: 15px;
+}
+
+/* Override nativewind/theme's System font defaults so font-sans uses Plus Jakarta Sans on native too */
+:root {
+  @media ios {
+    --font-sans: "PlusJakartaSans_400Regular";
+  }
+
+  @media android {
+    --font-sans: "PlusJakartaSans_400Regular";
+  }
+}
