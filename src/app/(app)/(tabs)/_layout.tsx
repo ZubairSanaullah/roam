@@ -1,11 +1,14 @@
-import type { ComponentProps } from "react";
+import { useRef, type ComponentRef } from "react";
 import { View } from "react-native";
-import { Tabs } from "expo-router";
+import { BlurTargetView } from "expo-blur";
+import { Tabs, usePathname, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Calendar from "lucide-react-native/icons/calendar";
 import Home from "lucide-react-native/icons/home";
 import Search from "lucide-react-native/icons/search";
 import User from "lucide-react-native/icons/user";
 import { GlassTabBar, type GlassTabItem } from "@/components/ui";
+import { spacing } from "@/theme";
 
 export const unstable_settings = {
   anchor: "home",
@@ -20,71 +23,61 @@ const TAB_ITEMS: readonly GlassTabItem<TabRouteName>[] = [
   { key: "profile", label: "Profile", icon: User },
 ] as const;
 
-type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
+export default function ProtectedTabsLayout() {
+  const blurTargetRef = useRef<ComponentRef<typeof View> | null>(null);
+  const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  const router = useRouter();
 
-function RoamFloatingTabBar({
-  state,
-  emitter,
-  navigateToTab,
-  insets,
-}: TabBarProps) {
-  const activeRoute = state.routes[state.index]?.name;
-  const activeTab: TabRouteName =
-    activeRoute === "search" || activeRoute === "trips" || activeRoute === "profile"
-      ? activeRoute
-      : "home";
+  const activeTab: TabRouteName = pathname.endsWith("/search")
+    ? "search"
+    : pathname.endsWith("/trips")
+      ? "trips"
+      : pathname.endsWith("/profile")
+        ? "profile"
+        : "home";
 
   const handleTabPress = (key: TabRouteName) => {
-    const targetRoute = state.routes.find((route) => route.name === key);
-    if (!targetRoute) {
+    if (key === activeTab) {
       return;
     }
-
-    const event = emitter.emit({
-      type: "tabPress",
-      target: targetRoute.key,
-      canPreventDefault: true,
-    });
-
-    if (activeTab !== key && !event.defaultPrevented) {
-      navigateToTab(targetRoute.key);
-    }
+    router.navigate(`/${key}`);
   };
 
   return (
-    <View
-      pointerEvents="box-none"
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }}
-    >
-      <GlassTabBar
-        variant="docked"
-        bottomInset={insets.bottom}
-        tabs={TAB_ITEMS}
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-      />
-    </View>
-  );
-}
+    <View className="flex-1">
+      <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
+        <Tabs
+          tabBar={() => null}
+          screenOptions={{
+            headerShown: false,
+            animation: "none",
+          }}
+        >
+          <Tabs.Screen name="home" options={{ title: "Home" }} />
+          <Tabs.Screen name="search" options={{ title: "Search" }} />
+          <Tabs.Screen name="trips" options={{ title: "Trips" }} />
+          <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+        </Tabs>
+      </BlurTargetView>
 
-export default function ProtectedTabsLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        animation: "none",
-      }}
-      tabBar={(props) => <RoamFloatingTabBar {...props} />}
-    >
-      <Tabs.Screen name="home" options={{ title: "Home" }} />
-      <Tabs.Screen name="search" options={{ title: "Search" }} />
-      <Tabs.Screen name="trips" options={{ title: "Trips" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
-    </Tabs>
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: "absolute",
+          left: spacing.lg,
+          right: spacing.lg,
+          bottom: Math.max(insets.bottom, spacing.md),
+        }}
+      >
+        <GlassTabBar
+          variant="floating"
+          blurTarget={blurTargetRef}
+          tabs={TAB_ITEMS}
+          activeTab={activeTab}
+          onTabPress={handleTabPress}
+        />
+      </View>
+    </View>
   );
 }

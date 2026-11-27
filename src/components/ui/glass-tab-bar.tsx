@@ -1,11 +1,15 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ComponentRef, ReactNode, RefObject } from "react";
+import { useEffect, useRef } from "react";
 import {
+  Platform,
   Pressable,
+  StyleSheet,
   View,
   type LayoutChangeEvent,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import type { LucideIcon } from "lucide-react-native";
@@ -19,11 +23,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { radius, shadows, spacing, useThemeColors } from "@/theme";
 import { AppIcon } from "./app-icon";
 import { AppText } from "./app-text";
 
-const CIRCLE_SIZE = 64;
+const CIRCLE_SIZE = 60;
 const TOUCH_DELAY_MS = 45;
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 
@@ -41,6 +46,7 @@ export interface GlassTabBarProps<T extends string> {
   onTabPress: (key: T) => void;
   variant?: GlassTabBarVariant;
   bottomInset?: number;
+  blurTarget?: RefObject<ComponentRef<typeof View> | null>;
   className?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -50,19 +56,41 @@ interface TabLayout {
   width: number;
 }
 
+function GlassSheenOverlay() {
+  const colors = useThemeColors();
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Svg width="100%" height="100%" preserveAspectRatio="none">
+        <Defs>
+          <LinearGradient id="roamTabGlassSheen" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%" stopColor={colors.surface} stopOpacity={0.62} />
+            <Stop offset="48%" stopColor={colors.surface} stopOpacity={0.22} />
+            <Stop offset="100%" stopColor={colors.surface} stopOpacity={0.44} />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#roamTabGlassSheen)" />
+      </Svg>
+    </View>
+  );
+}
+
 function GlassSurface({
   children,
   variant,
   bottomInset,
+  blurTarget,
   className,
   style,
 }: {
   children: ReactNode;
   variant: GlassTabBarVariant;
   bottomInset: number;
+  blurTarget?: RefObject<ComponentRef<typeof View> | null>;
   className?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const colors = useThemeColors();
   const isDocked = variant === "docked";
   const surfaceShapeStyle: ViewStyle = isDocked
     ? {
@@ -77,27 +105,61 @@ function GlassSurface({
       }
     : {
         borderRadius: radius.full,
-        padding: spacing.xs,
+        padding: spacing.sm,
       };
+
+  const outerShadowStyle: ViewStyle = {
+    borderRadius: isDocked ? undefined : radius.full,
+    borderTopLeftRadius: isDocked ? radius["2xl"] : undefined,
+    borderTopRightRadius: isDocked ? radius["2xl"] : undefined,
+    boxShadow: shadows.glass,
+  };
 
   if (isLiquidGlassAvailable()) {
     return (
-      <GlassView
-        glassEffectStyle="regular"
-        isInteractive
-        style={[{ overflow: "hidden" }, surfaceShapeStyle, style]}
-      >
-        <View className={className}>{children}</View>
-      </GlassView>
+      <View style={[outerShadowStyle, style]}>
+        <GlassView
+          glassEffectStyle="regular"
+          isInteractive
+          style={[{ overflow: "hidden" }, surfaceShapeStyle]}
+        >
+          <View className={className}>{children}</View>
+        </GlassView>
+      </View>
+    );
+  }
+
+  const canUseNativeBlur = Platform.OS === "ios" || (Platform.OS === "android" && Boolean(blurTarget));
+
+  if (canUseNativeBlur) {
+    return (
+      <View style={[outerShadowStyle, style]}>
+        <BlurView
+          intensity={Platform.OS === "android" ? 55 : 68}
+          tint="default"
+          blurReductionFactor={4}
+          blurMethod={Platform.OS === "android" ? "dimezisBlurView" : undefined}
+          blurTarget={blurTarget}
+          style={[
+            {
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: colors.overlayBorder,
+            },
+            surfaceShapeStyle,
+          ]}
+        >
+          <GlassSheenOverlay />
+          <View className={className}>{children}</View>
+        </BlurView>
+      </View>
     );
   }
 
   return (
     <View
       className={[
-        isDocked
-          ? "border-t border-border-gray bg-top-scrim shadow-glass dark:border-border-dark dark:bg-glass-blur-dark"
-          : "border border-border-gray bg-top-scrim shadow-glass dark:border-border-dark dark:bg-glass-blur-dark",
+        "border border-border-gray bg-glass-blur shadow-glass dark:border-border-dark dark:bg-glass-blur-dark",
         className,
       ]
         .filter(Boolean)
@@ -180,7 +242,8 @@ function GlassTabButton<T extends string>({
       onPressOut={handlePressOut}
       onPress={onPress}
       pressRetentionOffset={16}
-      className="h-16 flex-1 items-center justify-center"
+      className="flex-1 items-center justify-center"
+      style={{ height: CIRCLE_SIZE }}
     >
       <Animated.View
         pointerEvents="none"
@@ -197,8 +260,15 @@ function GlassTabButton<T extends string>({
       />
 
       <Animated.View
-        className="h-16 w-16 items-center justify-center gap-xs"
-        style={contentStyle}
+        className="items-center justify-center"
+        style={[
+          {
+            width: CIRCLE_SIZE,
+            height: CIRCLE_SIZE,
+            gap: spacing.xs / 2,
+          },
+          contentStyle,
+        ]}
       >
         <AppIcon
           icon={tab.icon}
@@ -219,8 +289,8 @@ function GlassTabButton<T extends string>({
 }
 
 /**
- * Glass bottom navigation bar with a gliding round yellow active circle
- * enclosing icon + label and delayed lavender touch feedback on press.
+ * Floating frosted-glass pill bottom navigation bar with a gliding round yellow
+ * active circle enclosing icon + label and delayed lavender touch feedback.
  */
 export function GlassTabBar<T extends string>({
   tabs,
@@ -228,6 +298,7 @@ export function GlassTabBar<T extends string>({
   onTabPress,
   variant = "floating",
   bottomInset = 0,
+  blurTarget,
   className,
   style,
 }: GlassTabBarProps<T>) {
@@ -302,10 +373,14 @@ export function GlassTabBar<T extends string>({
     <GlassSurface
       variant={variant}
       bottomInset={bottomInset}
+      blurTarget={blurTarget}
       className={className}
       style={style}
     >
-      <View className="relative flex-row items-center justify-between">
+      <View
+        className="relative flex-row items-center justify-between"
+        style={{ height: CIRCLE_SIZE }}
+      >
         <Animated.View
           pointerEvents="none"
           style={[
@@ -317,7 +392,7 @@ export function GlassTabBar<T extends string>({
               height: CIRCLE_SIZE,
               borderRadius: radius.full,
               backgroundColor: colors.primary,
-              boxShadow: shadows.card,
+              boxShadow: shadows.raised,
             },
             indicatorStyle,
           ]}
