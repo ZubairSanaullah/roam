@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { useUser } from "@clerk/expo";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -22,9 +22,10 @@ import TreePine from "lucide-react-native/icons/tree-pine";
 import Waves from "lucide-react-native/icons/waves";
 import { FeaturedStayCard } from "@/components/home/featured-stay-card";
 import { NaturalSearchBar } from "@/components/home/natural-search-bar";
-import { AppIcon, AppText, Chip, PressableScale, RoamLogo } from "@/components/ui";
-import { LOCAL_STAYS, searchStays, type StayCategory } from "@/data/stays";
-import { radius, spacing } from "@/theme";
+import { Alert, AppIcon, AppText, Button, Card, Chip, PressableScale, RoamLogo } from "@/components/ui";
+import type { StayCategory } from "@/data/stays";
+import { useLiveStays } from "@/hooks/use-stays";
+import { radius, spacing, useThemeColors } from "@/theme";
 
 const CATEGORY_OPTIONS: readonly { label: StayCategory; icon: typeof Home }[] = [
   { label: "All Stays", icon: Home },
@@ -37,8 +38,11 @@ const CATEGORY_OPTIONS: readonly { label: StayCategory; icon: typeof Home }[] = 
 export default function HomeTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const reducedMotion = useReducedMotion();
   const { user } = useUser();
+
+  const { stays, loading, refreshing, error, reload, refresh } = useLiveStays();
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<StayCategory>("All Stays");
@@ -66,10 +70,10 @@ export default function HomeTabScreen() {
     "Guest";
   const initial = firstName.charAt(0).toUpperCase();
 
-  const filteredStays = searchStays(LOCAL_STAYS, {
-    category: selectedCategory,
-    sort: "recommended",
-  });
+  const filteredStays =
+    selectedCategory === "All Stays"
+      ? stays
+      : stays.filter((stay) => stay.category === selectedCategory);
 
   const handleCategoryPress = (category: StayCategory) => {
     if (category !== selectedCategory) {
@@ -98,6 +102,14 @@ export default function HomeTabScreen() {
       scrollEventThrottle={16}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={refresh}
+          tintColor={colors.textPrimary}
+          colors={[colors.textPrimary]}
+        />
+      }
       className="flex-1 bg-surface-white dark:bg-surface-dark"
       contentContainerStyle={{
         paddingTop: insets.top + spacing.sm,
@@ -192,21 +204,63 @@ export default function HomeTabScreen() {
         ))}
       </View>
 
-      {/* Featured Stay Cards */}
+      {/* Featured Stay Cards / Loading / Error / Empty */}
       <View className="mt-lg gap-base">
-        {filteredStays.map((stay, index) => (
-          <FeaturedStayCard
-            key={stay.id}
-            stay={stay}
-            index={index}
-            onPress={() =>
-              router.push({
-                pathname: "/stay/[id]",
-                params: { id: stay.id },
-              })
-            }
-          />
-        ))}
+        {error && stays.length > 0 ? (
+          <Alert variant="error" message={error} />
+        ) : null}
+
+        {loading && stays.length === 0 ? (
+          <Card padding="lg" className="items-center gap-md py-2xl">
+            <ActivityIndicator color={colors.textPrimary} />
+            <AppText variant="caption" tone="secondary">
+              Loading live stays...
+            </AppText>
+          </Card>
+        ) : error && stays.length === 0 ? (
+          <Card padding="lg" className="gap-md">
+            <Alert variant="error" message={error} />
+            <Button variant="primary" size="md" title="Try again" onPress={reload} />
+          </Card>
+        ) : filteredStays.length === 0 ? (
+          <Card padding="lg" className="items-center gap-md py-2xl">
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-lavender-tint">
+              <AppIcon icon={Home} size="lg" tone="lavender" />
+            </View>
+            <View className="items-center gap-xs">
+              <AppText variant="title">No stays in {selectedCategory}</AppText>
+              <AppText variant="caption" tone="secondary" className="text-center">
+                Try another category or refresh to load the latest stays.
+              </AppText>
+            </View>
+            <Button
+              variant="primary"
+              size="md"
+              title={selectedCategory === "All Stays" ? "Refresh" : "Show all stays"}
+              onPress={() => {
+                if (selectedCategory === "All Stays") {
+                  reload();
+                } else {
+                  setSelectedCategory("All Stays");
+                }
+              }}
+            />
+          </Card>
+        ) : (
+          filteredStays.map((stay, index) => (
+            <FeaturedStayCard
+              key={stay.id}
+              stay={stay}
+              index={index}
+              onPress={() =>
+                router.push({
+                  pathname: "/stay/[id]",
+                  params: { id: stay.id },
+                })
+              }
+            />
+          ))
+        )}
       </View>
     </Animated.ScrollView>
   );

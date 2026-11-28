@@ -13,14 +13,21 @@ import ChevronRight from "lucide-react-native/icons/chevron-right";
 import MapPin from "lucide-react-native/icons/map-pin";
 import Star from "lucide-react-native/icons/star";
 import { AppIcon, AppText, PressableScale } from "@/components/ui";
-import type { StayProperty } from "@/data/stays";
 import { palette, radius, useThemeColors } from "@/theme";
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 const CARD_LAYOUT_TRANSITION = LinearTransition.duration(200);
 
+export interface FeaturedStayCardItem {
+  id: string;
+  title: string;
+  location: string;
+  rating: string;
+  imageUri: string;
+}
+
 export interface FeaturedStayCardProps {
-  stay: StayProperty;
+  stay: FeaturedStayCardItem;
   index: number;
   onPress: () => void;
 }
